@@ -2,6 +2,7 @@ package com.company.p9simple.viewmodel;
 
 import android.app.Application;
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.company.p9simple.db.AppDao;
 import com.company.p9simple.db.AppDatabase;
@@ -9,6 +10,7 @@ import com.company.p9simple.model.User;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 
@@ -32,7 +34,8 @@ public class RegistrationViewModel extends AndroidViewModel {
     }
 
     public void createAccountAndLogin(final String username, final String password, final String bio) {
-        dao.getUser(username).observeForever(new Observer<User>() {
+        final LiveData<User> userNameCheck = dao.getUser(username);
+        userNameCheck.observeForever(new Observer<User>() {
             @Override
             public void onChanged(User user) {
                 if(user == null){
@@ -41,13 +44,14 @@ public class RegistrationViewModel extends AndroidViewModel {
                         @Override
                         public void run() {
                             dao.insertUser(newUser);
+                            registeredUser = newUser;
+                            registrationState.postValue(RegistrationState.REGISTRATION_COMPLETED);
                         }
                     });
-                    registeredUser = newUser;
-                    registrationState.setValue(RegistrationState.REGISTRATION_COMPLETED);
                 } else {
                     registrationState.setValue(RegistrationState.USERNAME_NOT_AVAILABLE);
                 }
+                userNameCheck.removeObserver(this);
             }
         });
     }

@@ -9,6 +9,7 @@ import com.company.p9simple.model.User;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 
@@ -35,7 +36,9 @@ public class LoginViewModel extends AndroidViewModel {
 
 
     public MutableLiveData<AuthenticationState> login(String username, String password) {
-        appDao.authenticate(username, password).observeForever(new Observer<User>() {
+        final LiveData<User> authenticate = appDao.authenticate(username, password);
+
+        authenticate.observeForever(new Observer<User>() {
             @Override
             public void onChanged(User user) {
                 if(user != null){
@@ -44,6 +47,7 @@ public class LoginViewModel extends AndroidViewModel {
                 } else {
                     authenticationState.setValue(AuthenticationState.INVALID_AUTHENTICATION);
                 }
+                authenticate.removeObserver(this);
             }
         });
 

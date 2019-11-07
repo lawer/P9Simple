@@ -66,6 +66,7 @@ public class RegisterFragment extends Fragment {
                             }
                         }
                     });
+                    registrationViewModel.registrationState.setValue(RegistrationViewModel.RegistrationState.COLLECT_USER_DATA);
                 } else if(registrationState == RegistrationViewModel.RegistrationState.USERNAME_NOT_AVAILABLE){
                     Toast.makeText(getContext(), "USERNAME NOT AVAILABLE", Toast.LENGTH_SHORT).show();
                 }
