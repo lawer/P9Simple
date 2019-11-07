@@ -35,23 +35,19 @@ public class LoginViewModel extends AndroidViewModel {
     }
 
 
-    public MutableLiveData<AuthenticationState> login(String username, String password) {
-        final LiveData<User> authenticate = appDao.authenticate(username, password);
+    public LiveData<User> login(String username, String password) {
+        return appDao.authenticate(username, password);
+    }
 
-        authenticate.observeForever(new Observer<User>() {
-            @Override
-            public void onChanged(User user) {
-                if(user != null){
-                    currentUser = user;
-                    authenticationState.setValue(AuthenticationState.AUTHENTICATED);
-                } else {
-                    authenticationState.setValue(AuthenticationState.INVALID_AUTHENTICATION);
-                }
-                authenticate.removeObserver(this);
-            }
-        });
+    public AuthenticationState setAuthState(User user) {
+        if (user != null) {
+            currentUser = user;
+            authenticationState.setValue(AuthenticationState.AUTHENTICATED);
+        } else {
+            authenticationState.setValue(AuthenticationState.INVALID_AUTHENTICATION);
+        }
 
-        return authenticationState;
+        return authenticationState.getValue();
     }
 
     public MutableLiveData<AuthenticationState> logout() {

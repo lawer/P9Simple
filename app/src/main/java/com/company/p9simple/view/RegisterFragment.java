@@ -9,12 +9,14 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.company.p9simple.R;
+import com.company.p9simple.model.User;
 import com.company.p9simple.viewmodel.LoginViewModel;
 import com.company.p9simple.viewmodel.RegistrationViewModel;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.navigation.Navigation;
@@ -57,14 +59,20 @@ public class RegisterFragment extends Fragment {
             @Override
             public void onChanged(RegistrationViewModel.RegistrationState registrationState) {
                 if(registrationState == RegistrationViewModel.RegistrationState.REGISTRATION_COMPLETED){
-                    loginViewModel.login(registrationViewModel.registeredUser.username, registrationViewModel.registeredUser.password).observe(getViewLifecycleOwner(), new Observer<LoginViewModel.AuthenticationState>() {
+                    LiveData<User> user = loginViewModel.login(usernameEditText.getText().toString(), passwordEditText.getText().toString());
+                    user.observe(getViewLifecycleOwner(), new Observer<User>() {
                         @Override
-                        public void onChanged(LoginViewModel.AuthenticationState authenticationState) {
-                            if(authenticationState == LoginViewModel.AuthenticationState.AUTHENTICATED){
+                        public void onChanged(User user) {
+                            LoginViewModel.AuthenticationState authenticationState = loginViewModel.setAuthState(user);
+
+                            if (authenticationState == LoginViewModel.AuthenticationState.AUTHENTICATED) {
                                 Navigation.findNavController(view).navigate(R.id.profileFragment);
+                            } else if (authenticationState == LoginViewModel.AuthenticationState.INVALID_AUTHENTICATION) {
+                                Toast.makeText(getContext(), "INVALID CREDENTIALS", Toast.LENGTH_SHORT).show();
                             }
                         }
                     });
+
                     registrationViewModel.registrationState.setValue(RegistrationViewModel.RegistrationState.COLLECT_USER_DATA);
                 } else if(registrationState == RegistrationViewModel.RegistrationState.USERNAME_NOT_AVAILABLE){
                     Toast.makeText(getContext(), "USERNAME NOT AVAILABLE", Toast.LENGTH_SHORT).show();

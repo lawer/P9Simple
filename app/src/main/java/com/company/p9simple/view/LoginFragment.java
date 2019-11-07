@@ -6,6 +6,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.navigation.Navigation;
@@ -28,7 +29,8 @@ public class LoginFragment extends Fragment {
     private EditText usernameEditText, passwordEditText;
     private LoginViewModel loginViewModel;
 
-    public LoginFragment() {}
+    public LoginFragment() {
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -54,12 +56,15 @@ public class LoginFragment extends Fragment {
         view.findViewById(R.id.login).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View view) {
-                loginViewModel.login(usernameEditText.getText().toString(), passwordEditText.getText().toString()).observe(getViewLifecycleOwner(), new Observer<LoginViewModel.AuthenticationState>() {
+                LiveData<User> user = loginViewModel.login(usernameEditText.getText().toString(), passwordEditText.getText().toString());
+                user.observe(getViewLifecycleOwner(), new Observer<User>() {
                     @Override
-                    public void onChanged(LoginViewModel.AuthenticationState authenticationState) {
-                        if(authenticationState == LoginViewModel.AuthenticationState.AUTHENTICATED){
+                    public void onChanged(User user) {
+                        LoginViewModel.AuthenticationState authenticationState = loginViewModel.setAuthState(user);
+
+                        if (authenticationState == LoginViewModel.AuthenticationState.AUTHENTICATED) {
                             Navigation.findNavController(view).navigate(R.id.profileFragment);
-                        } else if(authenticationState == LoginViewModel.AuthenticationState.INVALID_AUTHENTICATION){
+                        } else if (authenticationState == LoginViewModel.AuthenticationState.INVALID_AUTHENTICATION) {
                             Toast.makeText(getContext(), "INVALID CREDENTIALS", Toast.LENGTH_SHORT).show();
                         }
                     }
